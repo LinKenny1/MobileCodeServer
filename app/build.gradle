@@ -18,10 +18,9 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         python {
-            buildPython "/usr/bin/python3"
             pip {
                 install "flask"
-                install "requests"
+                install "requests"  
                 install "numpy"
             }
         }
@@ -59,8 +58,8 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.5'
     
-    // LiquidCore for Node.js
-    implementation 'io.github.liquidcore:liquidcore:0.6.2'
+    // LiquidCore for Node.js - using available version
+    implementation 'io.github.liquidcore:liquidcore:0.7.0'
     
     // HTTP server capabilities
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
