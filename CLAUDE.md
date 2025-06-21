@@ -61,10 +61,12 @@ The application follows a service-oriented architecture with two main background
 ```
 MainActivity → starts both services
     ↓
-HttpServerService → binds to → CodeExecutionService
+HttpServerService → binds to → CodeExecutionService (via ServiceConnection)
     ↓
 Fragments → bind to services via ServiceConnection
 ```
+
+**Important**: Services are started via `startService()` but communication happens through `bindService()` with ServiceConnection callbacks. Never instantiate services directly with `new ServiceClass()`.
 
 ### Python Integration (Chaquopy)
 - Chaquopy configuration in `app/build.gradle` includes Flask, requests, numpy
@@ -135,9 +137,18 @@ Both services are started from MainActivity but designed to run independently. S
 - ExecutionResult data class encapsulates success/failure states
 - Thread-safe process management with ConcurrentHashMap
 - Executor service handles concurrent executions with proper cancellation support
+- Node.js execution uses timeout mechanism (5 seconds) to prevent hanging
 
 ### Memory Considerations
 - Python interpreter initialized once per service instance
 - LiquidCore creates new V8 contexts per execution
 - Executor thread pools use cached thread pools for scalability
 - Process futures stored in memory until completion or manual cleanup
+
+### Common Issues and Solutions
+
+**Service Binding**: Always use ServiceConnection pattern for inter-service communication. HttpServerService binds to CodeExecutionService in onCreate().
+
+**Permissions**: App requests storage and network permissions. Runtime permission checks are implemented in MainActivity.
+
+**Node.js Execution**: Uses event-driven completion detection instead of fixed sleep delays for more reliable execution.

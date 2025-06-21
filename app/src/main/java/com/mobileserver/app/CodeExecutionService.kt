@@ -96,10 +96,21 @@ class CodeExecutionService : Service() {
                     
                     service.start(wrappedCode)
                     
-                    // Wait for execution
-                    Thread.sleep(1000)
+                    // Wait for completion with timeout
+                    var completed = false
+                    service.addEventListener("message") { event ->
+                        completed = true
+                    }
                     
-                    if (error.isNotEmpty()) {
+                    var waitTime = 0
+                    while (!completed && waitTime < 5000) {
+                        Thread.sleep(100)
+                        waitTime += 100
+                    }
+                    
+                    if (!completed) {
+                        ExecutionResult.error("Node.js execution timeout")
+                    } else if (error.isNotEmpty()) {
                         ExecutionResult.error("Node.js execution error: $error")
                     } else {
                         ExecutionResult.success(result.ifEmpty { "Code executed successfully" })

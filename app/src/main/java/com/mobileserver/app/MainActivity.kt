@@ -1,10 +1,14 @@
 package com.mobileserver.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -15,8 +19,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var codeExecutionService: CodeExecutionService
-    private lateinit var httpServerService: HttpServerService
+    
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1001
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,19 +36,32 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        // Start the code execution service
-        codeExecutionService = CodeExecutionService()
-        val serviceIntent = Intent(this, CodeExecutionService::class.java)
-        startService(serviceIntent)
+        // Start services
+        startService(Intent(this, CodeExecutionService::class.java))
+        startService(Intent(this, HttpServerService::class.java))
         
-        // Start the HTTP server service
-        httpServerService = HttpServerService()
-        val httpServiceIntent = Intent(this, HttpServerService::class.java)
-        startService(httpServiceIntent)
+        // Check and request permissions
+        checkPermissions()
 
         binding.fab.setOnClickListener { view ->
             // Navigate to code editor fragment
             navController.navigate(R.id.action_FirstFragment_to_SecondFragment)
+        }
+    }
+    
+    private fun checkPermissions() {
+        val permissions = arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_NETWORK_STATE
+        )
+        
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        
+        if (missingPermissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missingPermissions.toTypedArray(), PERMISSION_REQUEST_CODE)
         }
     }
 

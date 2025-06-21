@@ -89,6 +89,24 @@ app/src/main/java/com/mobileserver/app/
 3. Sync project with Gradle files
 4. Build and run on device or emulator
 
+### Requirements
+- Android Studio Arctic Fox or later
+- Android SDK 34
+- Minimum device: Android 7.0 (API 24)
+- Python 3.x installed on build machine (for Chaquopy)
+
+### Build Commands
+```bash
+# Build debug APK
+./gradlew assembleDebug
+
+# Install on connected device
+./gradlew installDebug
+
+# Run tests
+./gradlew test
+```
+
 ## Contributing
 
 Feel free to submit issues, feature requests, or pull requests to improve the app!

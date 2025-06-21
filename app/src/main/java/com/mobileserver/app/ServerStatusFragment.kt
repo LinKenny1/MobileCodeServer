@@ -114,8 +114,16 @@ class ServerStatusFragment : Fragment() {
     }
     
     private fun getLocalIpAddress(): String {
-        val wifiManager = requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val ipAddress = wifiManager.connectionInfo.ipAddress
-        return Formatter.formatIpAddress(ipAddress)
+        return try {
+            val wifiManager = requireContext().applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val ipAddress = wifiManager.connectionInfo.ipAddress
+            if (ipAddress != 0) {
+                Formatter.formatIpAddress(ipAddress)
+            } else {
+                "192.168.1.x"  // Fallback when IP not available
+            }
+        } catch (e: Exception) {
+            "192.168.1.x"  // Fallback on error
+        }
     }
 }

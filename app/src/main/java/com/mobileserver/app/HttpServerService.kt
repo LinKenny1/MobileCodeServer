@@ -1,7 +1,10 @@
 package com.mobileserver.app
 
 import android.app.Service
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
@@ -24,6 +27,21 @@ class HttpServerService : Service() {
     private var isRunning = false
     private val gson = Gson()
     private var codeExecutionService: CodeExecutionService? = null
+    private var codeServiceBound = false
+    
+    private val codeServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, service: IBinder) {
+            val binder = service as CodeExecutionService.LocalBinder
+            codeExecutionService = binder.getService()
+            codeServiceBound = true
+            Log.d(TAG, "CodeExecutionService connected")
+        }
+        
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            codeServiceBound = false
+            Log.d(TAG, "CodeExecutionService disconnected")
+        }
+    }
     
     companion object {
         private const val TAG = "HttpServerService"
@@ -36,8 +54,21 @@ class HttpServerService : Service() {
     
     override fun onCreate() {
         super.onCreate()
-        codeExecutionService = CodeExecutionService()
+        // Bind to CodeExecutionService
+        Intent(this, CodeExecutionService::class.java).also { intent ->
+            bindService(intent, codeServiceConnection, Context.BIND_AUTO_CREATE)
+        }
         Log.d(TAG, "HttpServerService created")
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        stopServer()
+        if (codeServiceBound) {
+            unbindService(codeServiceConnection)
+            codeServiceBound = false
+        }
+        Log.d(TAG, "HttpServerService destroyed")
     }
     
     override fun onBind(intent: Intent): IBinder {
