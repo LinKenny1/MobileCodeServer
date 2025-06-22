@@ -27,25 +27,40 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
+            setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+            val navController = findNavController(R.id.nav_host_fragment_content_main)
+            appBarConfiguration = AppBarConfiguration(navController.graph)
+            setupActionBarWithNavController(navController, appBarConfiguration)
 
-        // Start services
-        startService(Intent(this, CodeExecutionService::class.java))
-        startService(Intent(this, HttpServerService::class.java))
-        
-        // Check and request permissions
-        checkPermissions()
+            // Check and request permissions first
+            checkPermissions()
+            
+            // Start services after a delay to ensure proper initialization
+            binding.root.postDelayed({
+                try {
+                    startService(Intent(this, CodeExecutionService::class.java))
+                    startService(Intent(this, HttpServerService::class.java))
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Failed to start services", e)
+                }
+            }, 1000)
 
-        binding.fab.setOnClickListener { view ->
-            // Navigate to code editor fragment
-            navController.navigate(R.id.action_FirstFragment_to_SecondFragment)
+            binding.fab.setOnClickListener { view ->
+                try {
+                    // Navigate to code editor fragment
+                    navController.navigate(R.id.action_FirstFragment_to_SecondFragment)
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Navigation failed", e)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "onCreate failed", e)
+            finish()
         }
     }
     

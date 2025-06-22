@@ -30,15 +30,25 @@ class CodeExecutionService : Service() {
     
     override fun onCreate() {
         super.onCreate()
-        initializePython()
-        Log.d(TAG, "CodeExecutionService created")
+        try {
+            initializePython()
+            Log.d(TAG, "CodeExecutionService created successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create CodeExecutionService", e)
+        }
     }
     
     private fun initializePython() {
-        if (!Python.isStarted()) {
-            Python.start(AndroidPlatform(this))
+        try {
+            if (!Python.isStarted()) {
+                Python.start(AndroidPlatform(this))
+            }
+            python = Python.getInstance()
+            Log.d(TAG, "Python initialized successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize Python", e)
+            throw e
         }
-        python = Python.getInstance()
     }
     
     override fun onBind(intent: Intent): IBinder {

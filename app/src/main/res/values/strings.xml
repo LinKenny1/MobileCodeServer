@@ -11,4 +11,5 @@
         Load Python or Node.js code and run it directly on your device.
         Perfect for IoT projects, automation, and distributed computing.
     </string>
+    <string name="appbar_scrolling_view_behavior" translatable="false">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
 </resources>
