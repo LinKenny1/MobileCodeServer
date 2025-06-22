@@ -7,7 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
-import io.liquidcore.service.LiquidService
+import com.eclipsesource.v8.V8
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
@@ -69,54 +69,25 @@ class CodeExecutionService : Service() {
     fun executeNodeJsCode(code: String, processId: String): ExecutionResult {
         return try {
             val future = executor.submit<ExecutionResult> {
+                var v8: V8? = null
                 try {
-                    val service = LiquidService(this@CodeExecutionService, 
-                        LiquidService.Options().enableConsole(true))
+                    v8 = V8.createV8Runtime()
                     
-                    var result = ""
-                    var error = ""
+                    // Execute the JavaScript code
+                    val result = v8.executeScript(code)
                     
-                    service.addEventListener("message") { event ->
-                        val data = event.data as? JSONObject
-                        result = data?.optString("result", "") ?: ""
-                        error = data?.optString("error", "") ?: ""
+                    // Convert result to string
+                    val output = when {
+                        result == null -> "null"
+                        result is String -> result
+                        else -> result.toString()
                     }
                     
-                    // Wrap user code to capture output
-                    val wrappedCode = """
-                        try {
-                            const result = (function() {
-                                $code
-                            })();
-                            LiquidCore.emit('message', {result: String(result)});
-                        } catch (e) {
-                            LiquidCore.emit('message', {error: e.message});
-                        }
-                    """.trimIndent()
-                    
-                    service.start(wrappedCode)
-                    
-                    // Wait for completion with timeout
-                    var completed = false
-                    service.addEventListener("message") { event ->
-                        completed = true
-                    }
-                    
-                    var waitTime = 0
-                    while (!completed && waitTime < 5000) {
-                        Thread.sleep(100)
-                        waitTime += 100
-                    }
-                    
-                    if (!completed) {
-                        ExecutionResult.error("Node.js execution timeout")
-                    } else if (error.isNotEmpty()) {
-                        ExecutionResult.error("Node.js execution error: $error")
-                    } else {
-                        ExecutionResult.success(result.ifEmpty { "Code executed successfully" })
-                    }
+                    ExecutionResult.success(output)
                 } catch (e: Exception) {
-                    ExecutionResult.error("Node.js execution error: ${e.message}")
+                    ExecutionResult.error("JavaScript execution error: ${e.message}")
+                } finally {
+                    v8?.release()
                 }
             }
             
@@ -125,7 +96,7 @@ class CodeExecutionService : Service() {
             runningProcesses.remove(processId)
             result
         } catch (e: Exception) {
-            ExecutionResult.error("Failed to execute Node.js code: ${e.message}")
+            ExecutionResult.error("Failed to execute JavaScript code: ${e.message}")
         }
     }
     

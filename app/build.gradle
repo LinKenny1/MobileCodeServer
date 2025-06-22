@@ -18,11 +18,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         python {
-            pip {
-                install "flask"
-                install "requests"  
-                install "numpy"
-            }
         }
 
         ndk {
