@@ -58,8 +58,8 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.5'
     
-    // LiquidCore for Node.js - using available version
-    implementation 'io.github.liquidcore:liquidcore:0.7.0'
+    // J2V8 for Node.js execution (LiquidCore alternative)
+    implementation 'com.eclipsesource.j2v8:j2v8:6.2.1@aar'
     
     // HTTP server capabilities
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
